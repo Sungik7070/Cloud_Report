@@ -1,0 +1,208 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>DHT11 Humidity / Temperature CanvasJS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" />
+<style>
+body, html {
+  height:100%;
+}
+
+.row{
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+    float:none;
+    margin:0 auto;
+    text-align:center;
+} 
+</style>
+</head>
+<body>
+   <h2>DHT11 Humidity / Temperature - CanvasJS</h2>
+    <div class="row center-block">
+        <div class="col-lg-3 col-md-6">
+            <div class="card card-inverse card-success">
+                <div class="card-block bg-success">
+                    <h4 class="text-uppercase">Humidity</h4>
+                    <h1 id="humi"></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card card-inverse card-danger">
+                <div class="card-block bg-danger">
+                    <h4 class="text-uppercase">Temperature</h4>
+                    <h1 id="temp"></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card card-inverse card-warning">
+                <div class="card-block bg-warning">
+                    <h4 class="text-uppercase">Time</h4>
+                    <h1 id="time"></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card card-inverse card-info">
+                <div class="card-block bg-info">
+                    <h4 class="text-uppercase">Status</h4>
+                    <h1 id="stat"></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--/row-->
+
+   
+    <div id="chartContainer" style="height: 400px; width: 100%;"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
+    <script src="./canvasjs.min.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyDrYa8Q4h9xbVh5t31x5GS7teR-H5Qh5cY",
+            authDomain: "dht11-46e62.firebaseapp.com",
+            databaseURL: "https://dht11-46e62.firebaseio.com",
+            projectId: "dht11-46e62",
+            storageBucket: "dht11-46e62.appspot.com",
+            messagingSenderId: "879708314945",
+            appId: "1:879708314945:web:0bf741094dcbe25f0655c0",
+            measurementId: "G-DKTEPTT0QL"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+
+        // CnavasJS.Chart 객체 생성 및 실행
+        var chart = new CanvasJS.Chart("chartContainer", {
+            animationEnabled: true,
+            title: {
+                text: "클라우드 기반 실시간 IoT 온습도 측정 시스템",
+                fontFamily: "Helvetica",
+                fontWeight: "bold",
+                fontColor: '#03254E',
+                fontSize: 22,
+            },
+            legend: {
+                fontSize: 15,
+                cursor: "pointer",
+		        itemclick: toggleDataSeries,
+            },
+            axisX: {
+                title: "Time",
+                suffix: "s",
+                titleFontSize: 14,
+                titleFontColor: '#03254E',
+                valueFormatString: 'HH:mm:ss',
+                labelFontColor: '#03254E',
+            },
+            axisY: {
+                title: "Temperature",
+                suffix: "°C",
+                valueFormatString: "0.0#",
+                minimum: 0,
+                maximum: 50,
+                titleFontColor: '#03254E',
+                titleFontSize: 14,
+                labelFontColor: '#03254E',
+            },
+             axisY2: {
+                 title: "Humidity",
+                 suffix: "%",
+                 valueFormatString: "0.0#",
+                 minimum: 0,
+                 maximum: 90,
+                 titleFontColor: '#03254E',
+                 titleFontSize: 14,
+                 labelFontColor: '#03254E',
+             },
+            toolTip: {
+                shared: true,
+                // Custom toolTip 사용
+                contentFormatter: function(e) {
+                    var content = CanvasJS.formatDate(e.entries[0].dataPoint.x, "HH:mm:ss") + "<br>";
+                    content += "Humidity: " + e.entries[0].dataPoint.y + " %" + "<br>";
+                     content += "Temperature: " + e.entries[1].dataPoint.y + " &deg;C<br>";
+                    return content;
+                }
+            },
+            animationEnabled: true,
+            data: [{
+                type: "line", //change it to line, spline, area, column, pie,
+                name: "Humidity",
+                axisYType: "secondary",
+                showInLegend: true,
+                legendText: "Humidity",
+                markType: "circle",
+                markerSize: 1,
+                markerColor: "blue",
+                lineColor: "blue",
+                dataPoints: []   // Humidity 데이터 출력 값을 저장하는 배열
+            }, {
+                type: "line", //change it to line, spline, area, column, pie,
+                name: "Temperature",
+                showInLegend: true,
+                legendText: "Temperature",
+                markType: "circle",
+                markerSize: 1,
+                markerColor: "red",
+                lineColor: "red",
+                dataPoints: []  // Temperature 데이터 출력 값을 저장하는 배열
+            }]
+        });
+        
+        function toggleDataSeries(e) {
+            if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+                e.dataSeries.visible = false;
+            } else {
+                e.dataSeries.visible = true;
+            }
+            e.chart.render();
+        }
+        
+        var WIFIstatus;
+        
+        // get the text value from the database
+        var dbRef = firebase.database().ref().child('logDHT/');
+
+        dbRef.on('child_added', function(snapshot) {
+            var row = snapshot.val();
+
+            clearTimeout(WIFIstatus);
+            var Humi = row.humidity;
+            var Temp = row.temperature;
+            var Time = row.time;
+            humi.innerText = Humi + "%";
+            temp.innerText = Temp + "℃";
+            time.innerText = Time;
+            stat.innerText = "ON";
+            
+            WIFIstatus = setTimeout(function(){
+                stat.innerText = "OFF";
+            }, 11000);
+            
+            
+            // firebase DB로 부터 받은 날짜 문자열은 CanvasJS에서 사용하려면 반드시 Date 객체형으로 변환해야 함
+            row.time = new Date(row.time);
+            chart.options.data[0].dataPoints.push({   // data[0]는 Huminity 속성 배열
+                x: row.time,
+                y: row.humidity
+            });
+             chart.options.data[1].dataPoints.push({   // data[1]는 Temperature 속성 배열
+                x: row.time,
+                y: row.temperature
+             });
+            chart.render();  // 데이터 포인터 값을 챠트에 넣은 후 차트 출력
+        });
+    </script>
+</body>
+</html>
