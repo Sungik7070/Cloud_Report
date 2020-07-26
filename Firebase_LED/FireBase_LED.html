@@ -1,0 +1,101 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+<style>
+    @import url('https://fonts.googleapis.com/css?family=Fira+Mono:400');
+
+body{ 
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  background: #131313;
+  color: #fff;
+  font-size: 96px;
+  font-family: 'Fira Mono', monospace;
+  letter-spacing: -7px;
+}
+
+</style>
+</head>
+  <body>
+     <div class="container">
+        <div class="row"><br/>
+            <div class="col text-center">
+                <h2>Firebase Remote LED Control</h2>
+                <img id="ONOFF" style="widh:300px; height: 300px">
+                <h1 id="OUT_TEXT"></h1>
+                <button class = "on-button" id= "onBtn" onclick="onFunction()">LED ON</button>
+                <button class = "off-button" id="offBtn" onclick="offFunction()">LED OFF</button>
+            </div>
+        </div>
+      </div>
+      <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-analytics.js"></script>       
+     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
+
+     <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyCNh9IjRFnuOSeur1eLQ8hglXGXsr3j14g",
+        authDomain: "led-control-4623e.firebaseapp.com",
+        databaseURL: "https://led-control-4623e.firebaseio.com",
+        projectId: "led-control-4623e",
+        storageBucket: "led-control-4623e.appspot.com",
+        messagingSenderId: "72513971161",
+        appId: "1:72513971161:web:1a5e616f0c83a1d6556fc8",
+        measurementId: "G-Z7BBXKTLRL"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+    </script>
+
+      <script>
+        // getting the text value from the database
+        var led_one = document.getElementById('ON_BUTTON');
+        var led_off = document.getElementById('OFF_BUTTON');
+        var Img = document.getElementById('ONOFF');
+        var dbRef = firebase.database().ref().child('RED_LED_STATUS');
+
+        // ON 버튼 클릭하여 값 ON 설정
+        function onFunction() {
+            //파이어베이스 RED_LED_STATUS ON 변환
+            dbRef.set('ON')
+            //해당 이미지(ex. 켜진 전구)로 설정
+            Img.src="https://st3.depositphotos.com/4794979/16517/v/600/depositphotos_165172048-stock-video-light-bulb-on-black-background.jpg"
+        }
+
+       // OFF 버튼 클릭하여 값 OFF 설정
+        function offFunction() {
+            //파이어베이스 RED_LED_STATUS OFF 변환
+            dbRef.set('OFF')
+            //해당 이미지(ex. 꺼진 전구)로 설정
+            Img.src="https://st3.depositphotos.com/4794979/16517/v/600/depositphotos_165171498-stock-video-light-bulb-on-black-background.jpg"
+        }
+
+        // 현재 상태의 database 값 읽어오기
+        dbRef.on("value", function(snapshot) {
+          if (snapshot.val() == 'ON') {
+            //Firebase의 값이 ON일 때 웹에서도 LED is ON 표시
+            OUT_TEXT.innerText = 'LED is ON';
+          } else if (snapshot.val() == 'OFF'){
+            //Firebase의 값이 일 때 웹에서도 LED is OFF 표시
+            OUT_TEXT.innerText = 'LED is OFF';
+          }
+        }, function (error) {
+          console.log("Error: " + error.code);
+        });
+      </script>
+    </body>
+</html>
